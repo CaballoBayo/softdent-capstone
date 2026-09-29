@@ -3,12 +3,71 @@
 import { prisma } from "./prisma"
 import { OdontogramData } from "@/types/clinical"
 
+// --- VALIDACIONES DE UNICIDAD Y VERIFICACIONES EN TIEMPO REAL ---
+
+export async function checkRutExists(rut: string, excludeId?: string) {
+  try {
+    const patient = await prisma.patient.findFirst({
+      where: {
+        rut: rut,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+    });
+    return { exists: !!patient };
+  } catch (error) {
+    return { exists: false };
+  }
+}
+
+export async function checkPatientEmailExists(email: string, excludeId?: string) {
+  try {
+    const patient = await prisma.patient.findFirst({
+      where: {
+        email: email,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+    });
+    return { exists: !!patient };
+  } catch (error) {
+    return { exists: false };
+  }
+}
+
+export async function checkPhoneExists(phone: string, excludeId?: string) {
+  try {
+    const patient = await prisma.patient.findFirst({
+      where: {
+        phone: phone,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+    });
+    return { exists: !!patient };
+  } catch (error) {
+    return { exists: false };
+  }
+}
+
+export async function checkEmailExists(email: string, excludeId?: string) {
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        email: email,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+    });
+    return { exists: !!user };
+  } catch (error) {
+    return { exists: false };
+  }
+}
+
 // --- PACIENTES ---
 
 export async function createPatient(data: {
   rut: string;
   firstName: string;
   lastName: string;
+  email?: string;
   phone?: string;
 }) {
   try {
@@ -17,7 +76,8 @@ export async function createPatient(data: {
         rut: data.rut,
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone,
+        email: data.email || null,
+        phone: data.phone || null,
         odontogram: {} 
       }
     });
@@ -25,7 +85,7 @@ export async function createPatient(data: {
     return { success: true, patient: newPatient };
   } catch (error) {
     console.error("Error al crear paciente:", error);
-    return { success: false, error: "No se pudo registrar el paciente. ¿El RUT ya existe?" };
+    return { success: false, error: "No se pudo registrar el paciente. Verifique los datos o si ya existe." };
   }
 }
 
@@ -246,7 +306,6 @@ export async function getPayrollDetails(dentistId: string, month: number, year: 
     const dentist = await prisma.user.findUnique({ where: { id: dentistId } });
     if (!dentist) throw new Error("Dentista no encontrado");
 
-    // AQUÍ EL CAMBIO: Agregamos include de items y treatment
     const payments = await prisma.payment.findMany({
       where: {
         createdAt: { gte: startDate, lt: endDate },
@@ -256,7 +315,7 @@ export async function getPayrollDetails(dentistId: string, month: number, year: 
         budget: { 
           include: { 
             patient: true,
-            items: { include: { treatment: true } } // Traemos las prestaciones
+            items: { include: { treatment: true } }
           } 
         } 
       },
@@ -267,9 +326,7 @@ export async function getPayrollDetails(dentistId: string, month: number, year: 
     const doctorCut = Math.round(totalCollected * (dentist.commission / 100));
 
     const formattedPayments = payments.map(p => {
-      // Extraemos los nombres de todos los tratamientos de ese presupuesto y los unimos con comas
       const treatmentNames = p.budget.items.map(item => item.treatment.name).join(", ");
-      // Si por alguna razón no hay ítems, ponemos un texto por defecto
       const finalTreatments = treatmentNames.length > 0 ? treatmentNames : "Abono general";
 
       return {
@@ -277,7 +334,7 @@ export async function getPayrollDetails(dentistId: string, month: number, year: 
         date: p.createdAt,
         patientName: `${p.budget.patient.firstName} ${p.budget.patient.lastName}`,
         patientRut: p.budget.patient.rut,
-        treatments: finalTreatments, // AQUÍ PASAMOS LA PRESTACIÓN
+        treatments: finalTreatments,
         amount: p.amount,
         method: p.method,
         doctorEarned: Math.round(p.amount * (dentist.commission / 100))
@@ -309,7 +366,7 @@ export async function closePayrollAction(dentistId: string, month: number, year:
       return { success: false, error: "Esta liquidación ya fue cerrada." };
     }
 
-    const now = new Date(); // Este es el momento exacto del corte
+    const now = new Date();
 
     if (existing) {
       await prisma.payroll.update({
@@ -371,7 +428,6 @@ export async function getDashboardStats(month: number, year: number) {
       };
     }));
 
-    // Ordenamos por producción (el que más produjo primero)
     dentistStats.sort((a, b) => b.production - a.production);
 
     return {
@@ -387,6 +443,7 @@ export async function getDashboardStats(month: number, year: number) {
     return { success: false, error: "Error al cargar las estadísticas del mes." };
   }
 }
+
 export async function createProfessional(data: {
   name: string;
   email: string;
@@ -399,7 +456,6 @@ export async function createProfessional(data: {
         name: data.name,
         email: data.email,
         role: data.role,
-        // Si no envían comisión (ej. Recepcionista), guarda 0 o el valor por defecto
         commission: data.commission ?? 0, 
       }
     });
@@ -408,7 +464,6 @@ export async function createProfessional(data: {
   } catch (error) {
     console.error("Error al crear profesional:", error);
     
-    // Manejo de error específico si el correo ya existe
     if (error instanceof Error && error.message.includes('Unique constraint failed')) {
       return { success: false, error: "Ya existe un profesional con ese correo electrónico." };
     }

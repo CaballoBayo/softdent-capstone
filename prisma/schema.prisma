@@ -31,6 +31,7 @@ model Patient {
   rut          String        @unique
   firstName    String
   lastName     String
+  email        String?       @unique
   phone        String?
   odontogram   Json?
   appointments Appointment[]
@@ -39,82 +40,78 @@ model Patient {
 }
 
 model Appointment {
-  id           String   @id @default(uuid())
-  date         DateTime // Fecha y hora exacta de la cita
-  duration     Int      @default(30) // Duración en minutos
-  status       String   @default("AGENDADO") // AGENDADO, EN_ESPERA, EN_BOX, ATENDIDO, NO_ASISTE
-  notes        String?  // Motivo de consulta o nota de recepción
+  id        String   @id @default(uuid())
+  date      DateTime
+  duration  Int      @default(30)
+  status    String   @default("AGENDADO")
+  notes     String?
 
-  patientId    String
-  patient      Patient  @relation(fields: [patientId], references: [id])
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
 
-  dentistId    String
-  dentist      User     @relation(fields: [dentistId], references: [id])
+  dentistId String
+  dentist   User     @relation(fields: [dentistId], references: [id])
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
-// --- TABLAS DE PRESUPUESTO ---
-
 model Treatment {
-  id          String       @id @default(uuid())
-  name        String
-  price       Int
-  category    String
-  items       BudgetItem[]
+  id       String       @id @default(uuid())
+  name     String
+  price    Int
+  category String
+  items    BudgetItem[]
 }
 
 model Budget {
-  id          String       @id @default(uuid())
-  total       Int          @default(0)
-  paid        Int          @default(0)
-  status      String       @default("PENDIENTE") // PENDIENTE, APROBADO, PAGADO
+  id        String       @id @default(uuid())
+  total     Int          @default(0)
+  paid      Int          @default(0)
+  status    String       @default("PENDIENTE")
   
-  patientId   String
-  patient     Patient      @relation(fields: [patientId], references: [id])
+  patientId String
+  patient   Patient      @relation(fields: [patientId], references: [id])
   
-  dentistId   String
-  dentist     User         @relation(fields: [dentistId], references: [id])
+  dentistId String
+  dentist   User         @relation(fields: [dentistId], references: [id])
   
-  items       BudgetItem[]
-  payments    Payment[]
-  createdAt   DateTime     @default(now())
+  items     BudgetItem[]
+  payments  Payment[]
+  createdAt DateTime     @default(now())
 }
 
-// Registro de Pagos
 model Payment {
-  id          String   @id @default(uuid())
-  amount      Int
-  method      String
+  id        String   @id @default(uuid())
+  amount    Int
+  method    String
   
-  budgetId    String
-  budget      Budget   @relation(fields: [budgetId], references: [id])
+  budgetId  String
+  budget    Budget   @relation(fields: [budgetId], references: [id])
   
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model BudgetItem {
-  id          String     @id @default(uuid())
+  id          String    @id @default(uuid())
   tooth       Int?
   price       Int
   
   budgetId    String
-  budget      Budget     @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budget      Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   
   treatmentId String
-  treatment   Treatment  @relation(fields: [treatmentId], references: [id])
+  treatment   Treatment @relation(fields: [treatmentId], references: [id])
 }
 
-// Liquidaciones de sueldo/honorarios
 model Payroll {
-  id          String    @id @default(uuid())
-  period      String    // Mes a liquidar (ej: "2026-09")
-  totalPaid   Int       
-  status      String    @default("BORRADOR") // BORRADOR, CERRADA
-  closedAt    DateTime? // Fecha y hora exacta en que se cerró el mes
+  id        String    @id @default(uuid())
+  period    String
+  totalPaid Int      
+  status    String    @default("BORRADOR")
+  closedAt  DateTime?
   
-  dentistId   String
-  dentist     User      @relation(fields: [dentistId], references: [id])
+  dentistId String
+  dentist   User      @relation(fields: [dentistId], references: [id])
   
-  createdAt   DateTime  @default(now())
+  createdAt DateTime  @default(now())
 }
