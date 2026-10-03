@@ -31,10 +31,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
-        {/* El Navbar ahora aparecerá en absolutamente todas las páginas */}
+        {/* El Navbar ahora aparecerá   en absolutamente todas las páginas */}
         <Navbar />
         
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 w-full flex flex-col">
           {children}
         </div>
       </body>

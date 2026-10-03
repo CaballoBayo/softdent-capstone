@@ -28,15 +28,23 @@ model User {
 
 model Patient {
   id           String        @id @default(uuid())
-  rut          String        @unique
+  rut          String        @unique // RUT normalizado (sin puntos, con guion)
   firstName    String
   lastName     String
-  email        String?       @unique
+  email        String?       // Se quita @unique para permitir opcionalidad/avisos
   phone        String?
+  birthDate    DateTime?     // Necesario para coincidencia probable de duplicados
+  prevision    String        @default("Particular") // Relacionado con los catálogos
+  active       Boolean       @default(true) // Control para desactivación lógica
+
   odontogram   Json?
   appointments Appointment[]
   budgets      Budget[]
+
   createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt // <-- Agrega @default(now())
+
+  @@index([firstName, lastName]) // Índice para optimizar búsquedas por nombre
 }
 
 model Appointment {

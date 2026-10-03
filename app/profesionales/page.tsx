@@ -1,76 +1,79 @@
 import Link from 'next/link'
-import { getProfessionals } from '@/lib/actions' // Ajusta la ruta a tu archivo de acciones
+import { prisma } from '@/lib/prisma'
+
+// Definimos la interfaz con los campos opcionales del usuario
+interface ProfessionalUser {
+  id: string
+  name: string | null
+  email: string
+  role: string
+  commission?: number | null
+}
 
 export default async function ProfesionalesPage() {
-  const response = await getProfessionals()
-  const profesionales = response.success && response.professionals ? response.professionals : []
+  const profesionales: ProfessionalUser[] = await prisma.user.findMany({
+    orderBy: { name: 'asc' },
+  })
 
   return (
-    <div className="max-w-6xl mx-auto p-6 mt-10">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Equipo Clínico</h1>
-          <p className="text-gray-500 mt-1">Gestiona los dentistas, recepcionistas y administradores.</p>
-        </div>
+    <main className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        <Link 
-          href="/profesionales/nuevo" 
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-md transition-colors"
-        >
-          + Nuevo Profesional
-        </Link>
-      </div>
-
-      {!response.success && (
-        <div className="p-4 mb-6 bg-red-50 text-red-700 rounded-md">
-          {response.error}
+        {/* Cabecera */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Equipo Clínico</h1>
+            <p className="text-sm text-slate-500 mt-1">Gestiona los dentistas, recepcionistas y administradores.</p>
+          </div>
+          <Link
+            href="/profesionales/nuevo"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition-colors shadow-sm text-sm"
+          >
+            + Nuevo Profesional
+          </Link>
         </div>
-      )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Nombre</th>
-              <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Correo</th>
-              <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Rol</th>
-              <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Comisión</th>
-            </tr>
-          </thead>
-          <tbody>
-            {profesionales.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="py-8 text-center text-gray-500">
-                  No hay profesionales registrados aún.
-                </td>
-              </tr>
-            ) : (
-              profesionales.map((prof) => (
-                <tr key={prof.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-6 text-gray-800 font-medium">
-                    {prof.name}
-                  </td>
-                  <td className="py-4 px-6 text-gray-600 text-sm">
-                    {prof.email}
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${prof.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : ''}
-                      ${prof.role === 'DENTISTA' ? 'bg-blue-100 text-blue-800' : ''}
-                      ${prof.role === 'RECEPCIONISTA' ? 'bg-emerald-100 text-emerald-800' : ''}
-                    `}>
-                      {prof.role}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-gray-600 text-sm">
-                    {prof.role === 'DENTISTA' ? `${prof.commission}%` : '-'}
-                  </td>
+        {/* Tabla de Profesionales */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-200 text-xs font-black text-slate-400 uppercase tracking-wider">
+                  <th className="p-4 pl-6">Nombre</th>
+                  <th className="p-4">Correo</th>
+                  <th className="p-4">Rol</th>
+                  <th className="p-4 pr-6 text-right">Comisión</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {profesionales.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-12 text-center text-slate-400 font-medium">
+                      No hay profesionales registrados aún.
+                    </td>
+                  </tr>
+                ) : (
+                  profesionales.map((prof) => (
+                    <tr key={prof.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-4 pl-6 font-bold text-slate-800">{prof.name || 'Sin nombre'}</td>
+                      <td className="p-4 text-slate-600">{prof.email}</td>
+                      <td className="p-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 uppercase">
+                          {prof.role || 'DENTISTA'}
+                        </span>
+                      </td>
+                      <td className="p-4 pr-6 text-right font-medium text-slate-600">
+                        {prof.commission !== undefined && prof.commission !== null ? `${prof.commission}%` : '—'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </main>
   )
-}
+} 

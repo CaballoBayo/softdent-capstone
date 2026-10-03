@@ -44,7 +44,6 @@ export default function OdontogramaTest() {
     }));
   }
 
-  // Permite probar marcar un diente como ausente haciendo clic en la raíz
   const handleRootClick = (toothId: number) => {
     setOdontogramaState(prev => ({
       ...prev,
@@ -56,120 +55,123 @@ export default function OdontogramaTest() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Odontograma Digital</h1>
+    <main className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Toggle Adulto / Niño */}
-        <div className="flex bg-white rounded-xl shadow-sm border border-gray-200 p-1">
-          <button 
-            onClick={() => setIsChildView(false)} 
-            className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${!isChildView ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            Adulto
-          </button>
-          <button 
-            onClick={() => setIsChildView(true)} 
-            className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${isChildView ? 'bg-purple-50 text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            Niño
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Panel de Herramientas (Temporal para pruebas) */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 w-full lg:w-56 h-fit shrink-0">
-          <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Herramientas</h2>
-          <div className="flex flex-col gap-2">
-            <button onClick={() => setCurrentTool("CARIES")} className={`p-2 text-sm rounded border text-left ${currentTool === "CARIES" ? "bg-slate-100 border-slate-500 text-slate-900 font-bold" : "hover:bg-gray-50"}`}>
-              ⚫ Marcar Lesión
+        {/* Cabecera */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Odontograma Digital</h1>
+          
+          {/* Toggle Adulto / Niño */}
+          <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200">
+            <button 
+              onClick={() => setIsChildView(false)} 
+              className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${!isChildView ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              Adulto
             </button>
-            <button onClick={() => setCurrentTool("RESTAURACION")} className={`p-2 text-sm rounded border text-left ${currentTool === "RESTAURACION" ? "bg-blue-50 border-blue-500 text-blue-700 font-bold" : "hover:bg-gray-50"}`}>
-              🔵 Restauración
-            </button>
-            <button onClick={() => setCurrentTool("SELLANTE")} className={`p-2 text-sm rounded border text-left ${currentTool === "SELLANTE" ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-bold" : "hover:bg-gray-50"}`}>
-              🟢 Prevención
-            </button>
-            <button onClick={() => setCurrentTool("SANO")} className={`p-2 text-sm rounded border text-left ${currentTool === "SANO" ? "bg-gray-200 border-gray-500 text-gray-700 font-bold" : "hover:bg-gray-50"}`}>
-              ⚪ Borrar / Sano
+            <button 
+              onClick={() => setIsChildView(true)} 
+              className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${isChildView ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              Niño
             </button>
           </div>
-          <p className="text-[10px] text-gray-400 mt-6 italic">Nota: Haz clic en la raíz (número) para marcar el diente como ausente.</p>
         </div>
 
-        {/* Lienzo del Odontograma */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-200 flex-1 overflow-x-auto">
-          <div className="min-w-max flex flex-col items-center gap-10">
-            
-            {/* ARCADA SUPERIOR */}
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Maxilar Superior</span>
-              <div className="flex gap-2">
-                <div className="flex gap-0.5 border-r-2 border-gray-100 pr-2">
-                  {(!isChildView ? c1 : t1).map(id => (
-                    <Tooth 
-                      key={id} number={id} 
-                      condition={odontogramaState[id].condition} 
-                      surfaces={odontogramaState[id].surfaces} 
-                      onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
-                      onRootClick={() => handleRootClick(id)}
-                    />
-                  ))}
-                </div>
-                <div className="flex gap-0.5">
-                  {(!isChildView ? c2 : t2).map(id => (
-                    <Tooth 
-                      key={id} number={id} 
-                      condition={odontogramaState[id].condition} 
-                      surfaces={odontogramaState[id].surfaces} 
-                      onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
-                      onRootClick={() => handleRootClick(id)}
-                    />
-                  ))}
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* Panel de Herramientas */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 w-full lg:w-64 shrink-0">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Herramientas</h2>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => setCurrentTool("CARIES")} className={`p-2.5 text-sm rounded-xl border transition-all text-left ${currentTool === "CARIES" ? "bg-slate-100 border-slate-500 text-slate-900 font-bold shadow-sm" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}>
+                ⚫ Marcar Lesión
+              </button>
+              <button onClick={() => setCurrentTool("RESTAURACION")} className={`p-2.5 text-sm rounded-xl border transition-all text-left ${currentTool === "RESTAURACION" ? "bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-sm" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}>
+                🔵 Restauración
+              </button>
+              <button onClick={() => setCurrentTool("SELLANTE")} className={`p-2.5 text-sm rounded-xl border transition-all text-left ${currentTool === "SELLANTE" ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-bold shadow-sm" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}>
+                🟢 Prevención
+              </button>
+              <button onClick={() => setCurrentTool("SANO")} className={`p-2.5 text-sm rounded-xl border transition-all text-left ${currentTool === "SANO" ? "bg-slate-200 border-slate-500 text-slate-800 font-bold shadow-sm" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}>
+                ⚪ Borrar / Sano
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-6 leading-relaxed italic">Nota: Haz clic en la raíz (número) para marcar el diente como ausente.</p>
+          </div>
+
+          {/* Lienzo del Odontograma */}
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex-1 w-full overflow-x-auto">
+            <div className="min-w-max flex flex-col items-center gap-10">
+              
+              {/* ARCADA SUPERIOR */}
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Maxilar Superior</span>
+                <div className="flex gap-2">
+                  <div className="flex gap-0.5 border-r-2 border-slate-200 pr-2">
+                    {(!isChildView ? c1 : t1).map(id => (
+                      <Tooth 
+                        key={id} number={id} 
+                        condition={odontogramaState[id].condition} 
+                        surfaces={odontogramaState[id].surfaces} 
+                        onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
+                        onRootClick={() => handleRootClick(id)}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-0.5">
+                    {(!isChildView ? c2 : t2).map(id => (
+                      <Tooth 
+                        key={id} number={id} 
+                        condition={odontogramaState[id].condition} 
+                        surfaces={odontogramaState[id].surfaces} 
+                        onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
+                        onRootClick={() => handleRootClick(id)}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
+
+              <div className="w-full h-px bg-slate-100"></div>
+
+              {/* ARCADA INFERIOR */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex gap-2">
+                  <div className="flex gap-0.5 border-r-2 border-slate-200 pr-2">
+                    {(!isChildView ? c3 : t3).map(id => (
+                      <Tooth 
+                        key={id}
+                        number={id} 
+                        condition={odontogramaState[id].condition} 
+                        surfaces={odontogramaState[id].surfaces} 
+                        invert={true}
+                        onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
+                        onRootClick={() => handleRootClick(id)}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-0.5">
+                    {(!isChildView ? c4 : t4).map(id => (
+                      <Tooth 
+                        key={id}
+                        number={id} 
+                        condition={odontogramaState[id].condition} 
+                        surfaces={odontogramaState[id].surfaces} 
+                        invert={true}
+                        onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
+                        onRootClick={() => handleRootClick(id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Mandíbula Inferior</span>
+              </div>
+
             </div>
-
-            <div className="w-full h-px bg-gray-100"></div>
-
-            {/* ARCADA INFERIOR */}
-<div className="flex flex-col items-center gap-2">
-  <div className="flex gap-2">
-    <div className="flex gap-0.5 border-r-2 border-gray-100 pr-2">
-      {(!isChildView ? c3 : t3).map(id => (
-        <Tooth 
-          key={id}
-          number={id} 
-          condition={odontogramaState[id].condition} 
-          surfaces={odontogramaState[id].surfaces} 
-          invert={true} // <-- Pasamos el prop invert
-          onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
-          onRootClick={() => handleRootClick(id)}
-        />
-      ))}
-    </div>
-    <div className="flex gap-0.5">
-      {(!isChildView ? c4 : t4).map(id => (
-        <Tooth 
-          key={id}
-          number={id} 
-          condition={odontogramaState[id].condition} 
-          surfaces={odontogramaState[id].surfaces} 
-          invert={true} // <-- Pasamos el prop invert
-          onSurfaceClick={(surface) => handleSurfaceClick(id, surface)}
-          onRootClick={() => handleRootClick(id)}
-        />
-      ))}
-    </div>
-  </div>
-  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-2">Mandíbula Inferior</span>
-</div>
-              
-
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

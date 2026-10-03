@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { OdontogramaClinico } from "@/components/OdontogramaClinico"
 import { BudgetBuilder } from "@/components/BudgetBuilder"
 import { PaymentModal } from "@/components/PaymentModal"
+import { EditPatientModal } from "@/components/EditPatientModal"
 
 export default async function FichaPaciente({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,33 +33,59 @@ export default async function FichaPaciente({ params }: { params: Promise<{ id: 
   });
 
   return (
-    <div className="p-8 max-w-6xl mx-auto bg-gray-50 min-h-screen">
-      <div className="bg-white shadow rounded-2xl p-6 mb-8 border border-gray-200">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Ficha Clínica</h1>
+    <div className="w-full min-h-screen bg-gray-50 p-4 md:p-8">
+      {/* Tarjeta de Datos del Paciente con alto contraste */}
+      <div className="bg-white shadow rounded-2xl p-6 mb-8 border border-gray-200 w-full">
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-3xl font-bold text-gray-800">Ficha Clínica</h1>
+          {/* Botón para editar datos del paciente */}
+          <EditPatientModal patient={patient} />
+        </div>
+        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Paciente</p>
-            <p className="font-semibold text-lg">{patient.firstName} {patient.lastName}</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Paciente</p>
+            <p className="font-extrabold text-xl text-gray-900 mt-1">
+              {patient.firstName} {patient.lastName}
+            </p>
           </div>
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">RUT</p>
-            <p className="font-semibold text-lg">{patient.rut}</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">RUT</p>
+            <p className="font-extrabold text-xl text-gray-900 mt-1">
+              {patient.rut}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Previsión</p>
+            <p className="font-extrabold text-xl text-gray-900 mt-1">
+              {patient.prevision}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Contacto</p>
+            <p className="font-bold text-sm text-gray-900 mt-1">
+              {patient.phone || "-"}
+            </p>
+            <p className="text-xs text-gray-500">{patient.email || ""}</p>
           </div>
         </div>
       </div>
 
       <h2 className="text-2xl font-bold text-gray-800 mt-8 border-b pb-4">Odontograma</h2>
-      <OdontogramaClinico patientId={patient.id} initialData={patient.odontogram} />
+      <OdontogramaClinico 
+        patientId={patient.id} 
+        initialData={(patient.odontogram as unknown as Parameters<typeof OdontogramaClinico>[0]['initialData'])} 
+      />
 
       <h2 className="text-2xl font-bold text-gray-800 mt-12 border-b pb-4">Plan de Tratamiento y Aranceles</h2>
       
       <BudgetBuilder patientId={patient.id} dentists={dentists} treatments={treatments} />
 
       {patient.budgets.length > 0 && (
-        <div className="mt-8 space-y-6">
+        <div className="mt-8 space-y-6 w-full">
           <h3 className="font-bold text-gray-500 uppercase tracking-widest text-sm">Presupuestos Anteriores</h3>
           {patient.budgets.map(budget => (
-            <div key={budget.id} className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+            <div key={budget.id} className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm w-full">
               <div className="flex justify-between items-start mb-4 border-b pb-4">
                 <div>
                   <p className="text-xs font-black text-gray-400 uppercase">Fecha: {new Date(budget.createdAt).toLocaleDateString('es-CL')}</p>
@@ -71,7 +98,6 @@ export default async function FichaPaciente({ params }: { params: Promise<{ id: 
                   </span>
                   <p className="text-xl font-black text-blue-600 mt-2">Total: ${(budget.total || 0).toLocaleString('es-CL')}</p>
                   
-                  {/* AQUÍ ESTÁ LA CORRECCIÓN: (budget.paid || 0) */}
                   <p className="text-sm font-bold text-gray-500 mt-1">Abonado: ${(budget.paid || 0).toLocaleString('es-CL')}</p>
                   
                   {/* Modal de Pagos */}
