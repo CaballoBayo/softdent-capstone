@@ -19,7 +19,11 @@ model User {
   name         String
   role         Role          @default(DENTISTA)
   commission   Float         @default(40.0)
-  
+  isActive     Boolean       @default(true)
+
+  specialtyId  String?
+  specialty    Specialty?    @relation(fields: [specialtyId], references: [id])
+
   appointments Appointment[]
   budgets      Budget[]
   payrolls     Payroll[]
@@ -27,40 +31,54 @@ model User {
 }
 
 model Patient {
-  id           String        @id @default(uuid())
-  rut          String        @unique
+  id           String           @id @default(uuid())
+  rut          String           @unique
   firstName    String
   lastName     String
-  email        String?       @unique
+  email        String?          @unique
   phone        String?
   odontogram   Json?
+
+  insuranceId  String?
+  insurance    HealthInsurance? @relation(fields: [insuranceId], references: [id])
+
   appointments Appointment[]
   budgets      Budget[]
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime         @default(now())
 }
 
 model Appointment {
-  id        String   @id @default(uuid())
-  date      DateTime
-  duration  Int      @default(30)
-  status    String   @default("AGENDADO")
-  notes     String?
+  id                String           @id @default(uuid())
+  date              DateTime
+  duration          Int              @default(30)
+  status            String           @default("AGENDADO")
+  notes             String?
 
-  patientId String
-  patient   Patient  @relation(fields: [patientId], references: [id])
+  patientId         String
+  patient           Patient          @relation(fields: [patientId], references: [id])
 
-  dentistId String
-  dentist   User     @relation(fields: [dentistId], references: [id])
+  dentistId         String
+  dentist           User             @relation(fields: [dentistId], references: [id])
 
-  createdAt DateTime @default(now())
+  boxId             String?
+  box               Box?             @relation(fields: [boxId], references: [id])
+
+  appointmentTypeId String?
+  appointmentType   AppointmentType? @relation(fields: [appointmentTypeId], references: [id])
+
+  createdAt         DateTime         @default(now())
 }
 
 model Treatment {
-  id       String       @id @default(uuid())
-  name     String
-  price    Int
-  category String
-  items    BudgetItem[]
+  id          String             @id @default(uuid())
+  name        String
+  price       Int
+  isActive    Boolean            @default(true)
+
+  categoryId  String?
+  category    ProcedureCategory? @relation(fields: [categoryId], references: [id])
+
+  items       BudgetItem[]
 }
 
 model Budget {
@@ -68,37 +86,39 @@ model Budget {
   total     Int          @default(0)
   paid      Int          @default(0)
   status    String       @default("PENDIENTE")
-  
+
   patientId String
   patient   Patient      @relation(fields: [patientId], references: [id])
-  
+
   dentistId String
   dentist   User         @relation(fields: [dentistId], references: [id])
-  
+
   items     BudgetItem[]
   payments  Payment[]
   createdAt DateTime     @default(now())
 }
 
 model Payment {
-  id        String   @id @default(uuid())
-  amount    Int
-  method    String
-  
-  budgetId  String
-  budget    Budget   @relation(fields: [budgetId], references: [id])
-  
-  createdAt DateTime @default(now())
+  id              String         @id @default(uuid())
+  amount          Int
+
+  paymentMethodId String?
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+
+  budgetId        String
+  budget          Budget         @relation(fields: [budgetId], references: [id])
+
+  createdAt       DateTime       @default(now())
 }
 
 model BudgetItem {
   id          String    @id @default(uuid())
   tooth       Int?
   price       Int
-  
+
   budgetId    String
   budget      Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  
+
   treatmentId String
   treatment   Treatment @relation(fields: [treatmentId], references: [id])
 }
@@ -106,12 +126,154 @@ model BudgetItem {
 model Payroll {
   id        String    @id @default(uuid())
   period    String
-  totalPaid Int      
+  totalPaid Int
   status    String    @default("BORRADOR")
   closedAt  DateTime?
-  
+
   dentistId String
   dentist   User      @relation(fields: [dentistId], references: [id])
-  
+
   createdAt DateTime  @default(now())
+}
+
+// ==========================================
+// MÓDULO 5.1: DATOS MAESTROS (AXEL)
+// ==========================================
+
+model Specialty {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Box {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  isActive     Boolean       @default(true)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model HealthInsurance {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  patients  Patient[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model PaymentMethod {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  payments  Payment[]
+  cashMovements CashMovement[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model AppointmentType {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  isActive     Boolean       @default(true)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model ProcedureCategory {
+  id         String      @id @default(uuid())
+  name       String      @unique
+  isActive   Boolean     @default(true)
+  treatments Treatment[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model SystemParameter {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityName String
+  entityId   String
+  action     String
+  oldValue   String?
+  newValue   String?
+  changedBy  String?
+  createdAt  DateTime @default(now())
+}
+
+// ==========================================
+// MÓDULO 5.2: CAJA (AXEL)
+// ==========================================
+
+enum CashSessionStatus {
+  ABIERTA
+  CERRADA
+}
+
+enum CashMovementType {
+  INGRESO
+  EGRESO
+}
+
+// Sesión de Caja (Apertura, Cierre, Arqueo)
+model CashSession {
+  id              String            @id @default(uuid())
+  status          CashSessionStatus @default(ABIERTA)
+  
+  // Apertura
+  initialAmount   Int               // Monto inicial en efectivo
+  openedAt        DateTime          @default(now())
+  openedBy        String            // Nombre o email del responsable
+  
+  // Cierre y Arqueo
+  closedAt        DateTime?
+  closedBy        String?
+  expectedAmount  Int?              // Monto teórico calculado
+  countedAmount   Int?              // Monto real contado físicamente
+  difference      Int?              // countedAmount - expectedAmount (sobrante o faltante)
+  differenceNotes String?           // Justificación de la diferencia
+  
+  movements       CashMovement[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+// Movimientos de Caja (Ingresos y Egresos)
+model CashMovement {
+  id              String           @id @default(uuid())
+  type            CashMovementType
+  amount          Int
+  description     String
+  
+  // Método de pago (asociado al dato maestro)
+  paymentMethodId String
+  paymentMethod   PaymentMethod    @relation(fields: [paymentMethodId], references: [id])
+  
+  // Regla: No eliminar, solo anular
+  isVoided        Boolean          @default(false)
+  voidReason      String?
+  voidedBy        String?
+  voidedAt        DateTime?
+  
+  registeredBy    String           // Responsable del movimiento
+  
+  sessionId       String
+  session         CashSession      @relation(fields: [sessionId], references: [id])
+  
+  createdAt       DateTime         @default(now())
 }
